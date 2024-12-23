@@ -1,0 +1,81 @@
+import os
+import platform
+import subprocess
+import requests
+from packaging import version
+
+# Mock vulnerability database (replace with a real one like NVD)
+VULNERABILITY_DB = {
+    "app1": {"version": "1.2.0", "description": "Remote code execution vulnerability."},
+    "app2": {"version": "2.3.1", "description": "Privilege escalation vulnerability."},
+}
+
+def get_installed_software():
+    """Retrieve a list of installed software with their versions."""
+    software_list = []
+
+    if platform.system() == "Windows":
+        cmd = "wmic product get name,version"
+        output = subprocess.check_output(cmd, shell=True, text=True, errors='ignore')
+        for line in output.splitlines():
+            if "\t" in line:
+                name, ver = line.split("\t")
+                software_list.append({"name": name.strip(), "version": ver.strip()})
+    elif platform.system() == "Linux":
+        cmd = "dpkg-query -W -f='${binary:Package}\t${Version}\n'"
+        output = subprocess.check_output(cmd, shell=True, text=True, errors='ignore')
+        for line in output.splitlines():
+            if "\t" in line:
+                name, ver = line.split("\t")
+                software_list.append({"name": name.strip(), "version": ver.strip()})
+    elif platform.system() == "Darwin":
+        cmd = "brew list --versions"
+        output = subprocess.check_output(cmd, shell=True, text=True, errors='ignore')
+        for line in output.splitlines():
+            parts = line.split()
+            if len(parts) >= 2:
+                name = parts[0]
+                ver = parts[1]
+                software_list.append({"name": name.strip(), "version": ver.strip()})
+    else:
+        raise NotImplementedError("Unsupported OS")
+
+    return software_list
+
+def check_vulnerabilities(software_list):
+    """Check installed software against the vulnerability database."""
+    vulnerable_apps = []
+
+    for software in software_list:
+        name = software["name"].lower()
+        ver = software["version"]
+
+        if name in VULNERABILITY_DB:
+            vuln_info = VULNERABILITY_DB[name]
+            if version.parse(ver) < version.parse(vuln_info["version"]):
+                vulnerable_apps.append({
+                    "name": name,
+                    "installed_version": ver,
+                    "vulnerable_version": vuln_info["version"],
+                    "description": vuln_info["description"]
+                })
+
+    return vulnerable_apps
+
+def main():
+    print("Scanning installed applications...")
+    software_list = get_installed_software()
+
+    print("Checking for vulnerabilities...")
+    vulnerabilities = check_vulnerabilities(software_list)
+
+    if vulnerabilities:
+        print("\nVulnerabilities found:")
+        for vuln in vulnerabilities:
+            print(f"- {vuln['name']} (Installed: {vuln['installed_version']}, Vulnerable: {vuln['vulnerable_version']})")
+            print(f"  Description: {vuln['description']}")
+    else:
+        print("\nNo known vulnerabilities detected.")
+
+if __name__ == "__main__":
+    main()
