@@ -1,4 +1,4 @@
-- 👋 Hi, I’m @kingman26271
+- 👋 Hi, I’m @kingsley Amadi 
 - 👀 I’m interested in expanding my knowledge in building application that will solve problems in cybersecurity and cloud solution
 - 🌱 I’m currently learning python code for building a robust application that can detect applications running on your computer that is exposed to cyber attack.
 - 💞️ I’m looking to collaborate on creating a standard workforce partnership program that will speak on itself with the outcome result of the application.
